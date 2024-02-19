@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Interactive</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #title {
+            text-align: center; /* Pour centrer le contenu dans le cas où il n'est pas déjà centré */
+        }
+        #map {
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="title">
+        <img src="titre.jpg" alt="Titre de l'image" style="width: 100%;">
+
+        <div id="code">
+            <center><img src="code-couleur.jpg" alt="code couleur" style="width: 60%;"></center>
+        </div>
+
+        <div id="soutien">
+            <img src="soutien.jpg" alt="soutien" style="width: 85%;">
+        </div>
+    </div>
+
+    <div id="map"></div>
+    <form id="addLocationForm">
+        <label for="locationName">Nom du lieu:</label>
+        <input type="text" id="locationName" name="locationName" required>
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" name="latitude" required>
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" name="longitude" required>
+        <label for="type">Type:</label>
+        <input type="text" id="type" name="type" required>
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+        <label for="photo">Photo (URL):</label>
+        <input type="text" id="photo" name="photo" required>
+        <label for="lien">Lien:</label>
+        <input type="text" id="lien" name="lien" required>
+        <button type="submit">Ajouter Lieu</button>
+    </form>
+
+    <!-- Chargement de la bibliothèque Leaflet -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Inclusion du script JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var map = L.map('map').setView([0, 0], 2);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Charger les données initiales du fichier JSON
+            fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    // Parcourt chaque point dans les données JSON et crée un marqueur pour chaque point sur la carte.
+                    data.forEach(point => {
+                        addMarker(point);
+                    });
+                });
+
+            // Charger les données sauvegardées localement
+            var savedLocations = JSON.parse(localStorage.getItem('savedLocations')) || [];
+            savedLocations.forEach(location => {
+                addMarker(location);
+            });
+
+            var form = document.getElementById('addLocationForm');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // Récupérer les valeurs du formulaire
+                var locationName = document.getElementById('locationName').value;
+                var latitude = parseFloat(document.getElementById('latitude').value);
+                var longitude = parseFloat(document.getElementById('longitude').value);
+                var type = document.getElementById('type').value;
+                var description = document.getElementById('description').value;
+                var photo = document.getElementById('photo').value;
+                var lien = document.getElementById('lien').value;
+
+                // Créer un objet représentant le nouveau lieu
+                var newLocation = {
+                    name: locationName,
+                    latitude: latitude,
+                    longitude: longitude,
+                    type: type,
+                    description: description,
+                    photo: photo,
+                    lien: lien
+                };
+
+                // Ajouter le nouveau lieu à la liste des lieux sauvegardés
+                savedLocations.push(newLocation);
+
+                // Sauvegarder la liste mise à jour dans le localStorage
+                localStorage.setItem('savedLocations', JSON.stringify(savedLocations));
+
+                // Ajouter le marqueur pour le nouveau lieu sur la carte
+                addMarker(newLocation);
+
+                // Réinitialiser le formulaire
+                form.reset();
+            });
+
+            // Fonction pour ajouter un marqueur à la carte pour un lieu donné
+            function addMarker(location) {
+                var customIcon = L.icon({
+                    iconUrl: 'marker1.png',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30],
+                    popupAnchor: [0, -30]
+                });
+
+                var marker = L.marker([location.latitude, location.longitude], { icon: customIcon }).addTo(map);
+
+                marker.bindPopup(`<b>${location.name}</b><br>${location.description}<br><a href="${location.lien}" target="_blank">Cliquez ici pour plus d'informations !</a><br><img src="${location.photo}" alt="Photo" style="max-width: 100%;">`);
+            }
+        });
+    </script>
+
+</body>
+
+<!-- lien de la carte :   https://ekeno78.github.io/CARTE-AEH/ -->
+
+</html>
